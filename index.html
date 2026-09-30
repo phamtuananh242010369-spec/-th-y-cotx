@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Math Lab - Khám phá Hàm số y = cot(x)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 30%, #1e1e2f 0%, #0b0c10 100%);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-pink: #ff0844;
+      --accent-gold: #ffb199;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f0f4f8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 100vw; height: 100vh; overflow: hidden;
+      background: var(--bg-gradient);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--text-main);
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    #app-container {
+      position: relative; width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 24px; perspective: 1200px;
+    }
+
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: 20px;
+      padding: 16px 28px; z-index: 10;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .ai-badge {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #000; font-family: 'Orbitron', sans-serif; font-weight: 800;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px;
+      letter-spacing: 1px; box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    }
+    h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+
+    .table-hud {
+      display: flex; gap: 8px; background: rgba(0,0,0,0.3); padding: 8px;
+      border-radius: 12px; border: 1px solid var(--glass-border);
+    }
+    .hud-col {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 6px 12px; border-radius: 8px; transition: all 0.4s ease;
+      font-size: 13px; font-family: 'Orbitron', sans-serif;
+    }
+    .hud-col.active {
+      background: linear-gradient(135deg, rgba(0,242,254,0.2), rgba(79,172,254,0.2));
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0,242,254,0.4); transform: translateY(-2px);
+    }
+
+    main {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center; z-index: 1;
+    }
+
+    #stage { width: 100%; height: 100%; transform-style: preserve-3d; }
+
+    footer {
+      display: flex; justify-content: center; gap: 16px;
+      z-index: 10; padding-bottom: 12px;
+    }
+    .btn {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #050b14; font-family: 'Orbitron', sans-serif; font-weight: 700;
+      padding: 14px 32px; border: none; border-radius: 30px; cursor: pointer;
+      font-size: 14px; letter-spacing: 1px; transition: all 0.3s ease;
+      box-shadow: 0 10px 25px rgba(0, 242, 254, 0.3);
+    }
+    .btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 15px 35px rgba(0, 242, 254, 0.5); }
+
+    /* Victory Modal */
+    #victory-modal {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(15, 18, 28, 0.85); backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 28px;
+      padding: 40px 60px; text-align: center; z-index: 100;
+      opacity: 0; pointer-events: none; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 30px 80px rgba(0, 242, 254, 0.25);
+    }
+    #victory-modal.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+    #victory-modal h2 { font-family: 'Orbitron', sans-serif; font-size: 26px; color: #fff; margin-bottom: 12px; }
+    #victory-modal p { font-size: 16px; color: #a0aec0; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+<div id="app-container">
+  <header>
+    <div class="brand">
+      <span class="ai-badge">AI LAB</span>
+      <h1>Đồ thị Hàm số $y = \cot x$</h1>
+    </div>
+    <div class="table-hud" id="hud-table"></div>
+  </header>
+
+  <main>
+    <canvas id="stage"></canvas>
+  </main>
+
+  <div id="victory-modal">
+    <h2>🎉 BÍ MẬT ĐÃ ĐƯỢC GIẢI MÃ! 🎉</h2>
+    <p>Bạn đã hoàn thành phác họa và mở rộng hàm số tuần hoàn <strong>y = cot(x)</strong> với chu kỳ <strong>T = π</strong></p>
+    <button class="btn" onclick="restartAnimation()">XEM LẠI LẦN NỮA</button>
+  </div>
+
+  <footer>
+    <button class="btn" id="start-btn" onclick="startAnimation()">▶ BẮT ĐẦU TRÌNH DIỄN</button>
+  </footer>
+</div>
+
+<script>
+  const tableData = [
+    { xLabel: 'π/6', yLabel: '√3', xVal: Math.PI/6, yVal: Math.sqrt(3) },
+    { xLabel: 'π/4', yLabel: '1', xVal: Math.PI/4, yVal: 1 },
+    { xLabel: 'π/3', yLabel: '√3/3', xVal: Math.PI/3, 1/Math.sqrt(3) },
+    { xLabel: 'π/2', yLabel: '0', xVal: Math.PI/2, yVal: 0 },
+    { xLabel: '2π/3', yLabel: '-√3/3', xVal: 2*Math.PI/3, yVal: -1/Math.sqrt(3) },
+    { xLabel: '3π/4', yLabel: '-1', xVal: 3*Math.PI/4, yVal: -1 },
+    { xLabel: '5π/6', yLabel: '-√3', xVal: 5*Math.PI/6, yVal: -Math.sqrt(3) }
+  ];
+
+  // Render HUD Table
+  const hudTable = document.getElementById('hud-table');
+  tableData.forEach((item, index) => {
+    const col = document.createElement('div');
+    col.className = 'hud-col';
+    col.id = `hud-${index}`;
+    col.innerHTML = `
+      <span style="color:#a0aec0; font-size:10px;">x</span>
+      <strong style="color:#00f2fe">${item.xLabel}</strong>
+      <span style="color:#a0aec0; font-size:10px; margin-top:4px;">cot(x)</span>
+      <strong style="color:#ffb199">${item.yLabel}</strong>
+    `;
+    hudTable.appendChild(col);
+  });
+
+  // Web Audio Synthesizer
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+
+  function playTone(freq, type = 'sine', duration = 0.3) {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function playFanfare() {
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+      setTimeout(() => playTone(freq, 'triangle', 0.8), idx * 150);
+    });
+  }
+
+  // Canvas Setup
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  let width, height, originX, originY, scaleX, scaleY;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    originX = width / 2;
+    originY = height / 2;
+    scaleX = width / (3 * Math.PI);
+    scaleY = height / 7;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  let state = 'IDLE'; // IDLE, ANIMATING, DONE
+  let progress = 0;
+  let currentPointIdx = -1;
+  let isExpanded = false;
+
+  function drawGrid() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = -2 * Math.PI; x <= 2 * Math.PI; x += Math.PI / 6) {
+      let px = originX + x * scaleX;
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, height); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(width, originY); ctx.stroke(); // Ox
+    ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, height); ctx.stroke(); // Oy
+
+    // Asymptotes
+    ctx.strokeStyle = 'rgba(255, 8, 68, 0.6)';
+    ctx.setLineDash([6, 6]);
+    [-Math.PI, 0, Math.PI, 2 * Math.PI].forEach(a => {
+      let px = originX + a * scaleX;
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, height); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  }
+
+  function render() {
+    drawGrid();
+
+    // Render 3D Unit Circle on the left
+    if (state === 'ANIMATING' && progress < 0.3) {
+      let circleX = originX - 2.5 * scaleX;
+      let circleY = originY;
+      let r = 80;
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(circleX, circleY, r, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // Render Plotted Points
+    if (state === 'ANIMATING' || state === 'DONE') {
+      tableData.forEach((pt, i) => {
+        if (i <= currentPointIdx) {
+          let px = originX + pt.xVal * scaleX;
+          let py = originY - pt.yVal * scaleY;
+
+          // Glowing Dot
+          ctx.fillStyle = '#00f2fe';
+          ctx.shadowColor = '#00f2fe';
+          ctx.shadowBlur = 15;
+          ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      });
+    }
+
+    // Render Curve
+    if (progress > 0.4) {
+      let curveProg = (progress - 0.4) / 0.6;
+      ctx.strokeStyle = '#00f2fe';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#00f2fe';
+      ctx.shadowBlur = 20;
+
+      ctx.beginPath();
+      let startX = 0.08;
+      let endX = Math.PI - 0.08;
+      let currentMaxX = startX + (endX - startX) * Math.min(1, curveProg);
+
+      for (let x = startX; x <= currentMaxX; x += 0.02) {
+        let px = originX + x * scaleX;
+        let py = originY - (1 / Math.tan(x)) * scaleY;
+        if (x === startX) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Expand Periodic Branches
+    if (isExpanded) {
+      [-Math.PI, Math.PI].forEach(shift => {
+        ctx.strokeStyle = 'rgba(79, 172, 254, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 0.08; x <= Math.PI - 0.08; x += 0.02) {
+          let px = originX + (x + shift) * scaleX;
+          let py = originY - (1 / Math.tan(x)) * scaleY;
+          if (x === 0.08) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      });
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  function startAnimation() {
+    if (state === 'ANIMATING') return;
+    state = 'ANIMATING';
+    progress = 0;
+    currentPointIdx = -1;
+    isExpanded = false;
+    document.getElementById('start-btn').style.display = 'none';
+
+    let interval = setInterval(() => {
+      progress += 0.02;
+
+      // Highlight Points Step by Step
+      if (progress > 0.1 && currentPointIdx < tableData.length - 1) {
+        let nextIdx = Math.floor((progress - 0.1) * 20);
+        if (nextIdx > currentPointIdx && nextIdx < tableData.length) {
+          currentPointIdx = nextIdx;
+          playTone(400 + currentPointIdx * 100, 'sine', 0.2);
+          document.querySelectorAll('.hud-col').forEach(c => c.classList.remove('active'));
+          document.getElementById(`hud-${currentPointIdx}`).classList.add('active');
+        }
+      }
+
+      // Finish Curve & Show Modal
+      if (progress >= 1.0) {
+        clearInterval(interval);
+        state = 'DONE';
+        isExpanded = true;
+        playFanfare();
+        document.getElementById('victory-modal').classList.add('show');
+      }
+    }, 50);
+  }
+
+  function restartAnimation() {
+    document.getElementById('victory-modal').classList.remove('show');
+    document.getElementById('start-btn').style.display = 'block';
+    state = 'IDLE';
+    progress = 0;
+    currentPointIdx = -1;
+    isExpanded = false;
+    document.querySelectorAll('.hud-col').forEach(c => c.classList.remove('active'));
+  }
+
+  render();
+</script>
+
+</body>
+</html>
